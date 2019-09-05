@@ -1,0 +1,12 @@
+[package]
+name = "rust_elm_types"
+version = "0.1.0"
+authors = ["AbrarNitk <abrar.nitk@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["rust_elm_types_derive"]
+
+[dependencies]
+rust_elm_types_derive = {path = "./rust_elm_types_derive/"}
