@@ -1,11 +1,13 @@
 #[macro_use]
 extern crate rust_elm_types_derive;
 
-#[derive(Debug, Elm)]
+mod temp;
+
+#[derive(Elm)]
 struct User {
     #[elm(rename = "asdas")]
     name: Option<Vec<i32>>,
-    id: i32,
+    id: temp::User,
     vector: Vec<i32>,
 }
 

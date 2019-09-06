@@ -8,7 +8,9 @@ use proc_macro::TokenStream;
 use proc_macro2;
 use quote::ToTokens;
 use std::collections::HashMap;
+use std::env::args;
 use syn::DeriveInput;
+
 mod types;
 
 #[proc_macro_derive(Elm, attributes(elm))]
@@ -69,13 +71,35 @@ fn find_field_types(fields: &Vec<syn::Field>) -> HashMap<String, String> {
         let field_type = match field.ty {
             syn::Type::Path(syn::TypePath { ref path, .. }) => {
                 let mut tokens = proc_macro2::TokenStream::new();
+                for &syn::PathSegment {
+                    ref ident,
+                    ref arguments,
+                } in path.segments.iter()
+                {
+                    println!("Type Ident :: {:?} ", ident.to_string());
+                    match arguments {
+                        syn::PathArguments::AngleBracketed(
+                            syn::AngleBracketedGenericArguments { ref args, .. },
+                        ) => {
+                            println!("Angle :: {:?}", args);
+                        }
+                        syn::PathArguments::Parenthesized(paren) => {
+                            println!("Paren :: {:?}", paren);
+                        }
+                        syn::PathArguments::None => {
+                            println!("None");
+                        }
+                    };
+                }
+
                 path.to_tokens(&mut tokens);
-                // println!("Path :: {:?}", path);
+                // println!("Type :: {:?}", tokens.to_string());
                 tokens.to_string()
             }
             syn::Type::Reference(syn::TypeReference { ref elem, .. }) => {
                 let mut tokens = proc_macro2::TokenStream::new();
                 elem.to_tokens(&mut tokens);
+                println!("TypeRef :: {:?}", tokens.to_string());
                 tokens.to_string()
             }
             _ => panic!(
