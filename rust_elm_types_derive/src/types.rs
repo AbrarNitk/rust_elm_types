@@ -1,4 +1,6 @@
-enum ElmTypes {
+use proc_macro2::Ident;
+
+pub enum ElmTypes {
     Bool,
     String,
     Int,
@@ -29,7 +31,8 @@ impl ElmTypes {
     }
 }
 
-enum RustType {
+#[derive(Debug)]
+pub enum RustType {
     Char,
     Bool,
     I8,
@@ -80,30 +83,34 @@ impl RustType {
     }
 }
 
+fn string_to_rust(input: &str) -> RustType {
+    match input {
+        "char" => RustType::Char,
+        "bool" => RustType::Bool,
+        "i8" => RustType::I8,
+        "i16" => RustType::I16,
+        "i32" => RustType::I32,
+        "i64" => RustType::I64,
+        "isize" => RustType::ISize,
+        "u8" => RustType::U8,
+        "u16" => RustType::U16,
+        "u32" => RustType::U32,
+        "u64" => RustType::U64,
+        "usize" => RustType::USize,
+        "f32" => RustType::F32,
+        "f64" => RustType::F64,
+        "String" => RustType::String,
+        "Vec" => RustType::Vec,
+        "HashMap" => RustType::HashMap,
+        "Option" => RustType::Option,
+        "Result" => RustType::Result,
+        _ => RustType::Unknown(input.to_string()),
+    }
+}
+
 impl<'a> From<&'a str> for RustType {
     fn from(input: &str) -> Self {
-        match input {
-            "char" => RustType::Char,
-            "bool" => RustType::Bool,
-            "i8" => RustType::I8,
-            "i16" => RustType::I16,
-            "i32" => RustType::I32,
-            "i64" => RustType::I64,
-            "isize" => RustType::ISize,
-            "u8" => RustType::U8,
-            "u16" => RustType::U16,
-            "u32" => RustType::U32,
-            "u64" => RustType::U64,
-            "usize" => RustType::USize,
-            "f32" => RustType::F32,
-            "f64" => RustType::F64,
-            "String" => RustType::String,
-            "Vec" => RustType::Vec,
-            "HashMap" => RustType::HashMap,
-            "Option" => RustType::Option,
-            "Result" => RustType::Result,
-            _ => RustType::Unknown(input.to_string()),
-        }
+        string_to_rust(input)
     }
 }
 
@@ -131,5 +138,11 @@ impl<'a> From<&'a RustType> for ElmTypes {
             RustType::Result => ElmTypes::Result,
             RustType::Unknown(value) => ElmTypes::Unknown(value.to_string()),
         }
+    }
+}
+
+impl<'a> From<&'a Ident> for RustType {
+    fn from(input: &Ident) -> Self {
+        string_to_rust(input.to_string().as_ref())
     }
 }
