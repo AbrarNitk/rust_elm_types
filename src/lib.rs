@@ -4,11 +4,12 @@ extern crate rust_elm_types_derive;
 mod temp;
 
 #[derive(Elm)]
-struct User {
-    #[elm(rename = "asdas")]
+struct User<'a> {
+    // #[elm(rename = "asdas")]
     name: Option<Vec<i32>>,
-    id: temp::User,
-    vector: Vec<i32>,
+    id: &'a Vec<std::collections::HashMap<String, Vec<String>>>,
+    // asdsa: (i32, i32)
+    // vector: Vec<i32>,
 }
 
 #[cfg(test)]

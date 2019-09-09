@@ -9,7 +9,8 @@ use proc_macro2;
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::env::args;
-use syn::DeriveInput;
+use syn::{DeriveInput, PathSegment};
+use std::process::id;
 
 mod types;
 
@@ -63,44 +64,75 @@ fn field_validator_for_field(field: &syn::Field, field_types: &HashMap<String, S
     }
 }
 
+fn type_args(path_args: &syn::PathArguments, type_arg: &mut Vec<String>) {
+    match path_args {
+        syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments{ref args, ..}) => {
+            for x in args.iter() {
+                match x {
+                    syn::GenericArgument::Type(syn::Type::Array(syn::TypeArray{ref elem, ..} )) => {
+                         println!("TypeArray {:?}", elem);
+                    },
+                    syn::GenericArgument::Type(syn::Type::BareFn(syn::TypeBareFn{..} )) => {},
+                    syn::GenericArgument::Type(syn::Type::Group(syn::TypeGroup{..} )) => {},
+                    syn::GenericArgument::Type(syn::Type::ImplTrait(syn::TypeImplTrait{..} )) => {},
+                    syn::GenericArgument::Type(syn::Type::Path(syn::TypePath{ref path,..})) => {
+                        let path_segment: &syn::PathSegment = path.segments.last().unwrap().into_value();
+                        type_arg.push(path_segment.ident.to_string());
+                        type_args(&path_segment.arguments, type_arg);
+                    }
+                    _ => {}
+                }
+            }
+        },
+        syn::PathArguments::Parenthesized(ref paren) => {},
+        syn::PathArguments::None => {}
+    };
+}
+
+fn find_field_type(field_type: &syn::Type, type_arg: &mut Vec<String>) {
+    match field_type {
+        syn::Type::Path(syn::TypePath { ref path, .. }) => {
+            let path_segment: &syn::PathSegment = path.segments.last().unwrap().into_value();
+            println!("Type Ident :: {:?}", path_segment.ident.to_string());
+            type_args(&path_segment.arguments, type_arg);
+            // println!("Type :: {:?}", tokens.to_string());
+        }
+        syn::Type::Reference(syn::TypeReference { ref elem, .. }) => {
+            match elem.as_ref() {
+                syn::Type::Path(syn::TypePath{ref path, ..}) => {
+                    let path_segment: &syn::PathSegment = path.segments.last().unwrap().into_value();
+                    println!("Ref Type Ident :: {:?}", path_segment.ident.to_string());
+                    type_args(&path_segment.arguments, type_arg);
+                },
+                syn::Type::Reference(syn::TypeReference{ref elem, ..}) => {
+                    find_field_type(elem.as_ref(), type_arg);
+                }
+                _ => {}
+            };
+        }
+        _ => panic!(
+            "Type `{:?}` of field `{}` not supported",
+            "field.ty", "field_ident"
+        ),
+    };
+}
+
+
 fn find_field_types(fields: &Vec<syn::Field>) -> HashMap<String, String> {
     let mut types = HashMap::new();
     for field in fields {
+        let mut type_argument: Vec<String> = vec![];
         let field_ident = field.ident.as_ref().unwrap().to_string();
+        find_field_type(&field.ty, &mut type_argument);
+        println!("Type Args :: {:?}", type_argument );
 
         let field_type = match field.ty {
             syn::Type::Path(syn::TypePath { ref path, .. }) => {
-                let mut tokens = proc_macro2::TokenStream::new();
-                for &syn::PathSegment {
-                    ref ident,
-                    ref arguments,
-                } in path.segments.iter()
-                {
-                    println!("Type Ident :: {:?} ", ident.to_string());
-                    match arguments {
-                        syn::PathArguments::AngleBracketed(
-                            syn::AngleBracketedGenericArguments { ref args, .. },
-                        ) => {
-                            println!("Angle :: {:?}", args);
-                        }
-                        syn::PathArguments::Parenthesized(paren) => {
-                            println!("Paren :: {:?}", paren);
-                        }
-                        syn::PathArguments::None => {
-                            println!("None");
-                        }
-                    };
-                }
-
-                path.to_tokens(&mut tokens);
-                // println!("Type :: {:?}", tokens.to_string());
-                tokens.to_string()
+                "tokens".to_string()
             }
             syn::Type::Reference(syn::TypeReference { ref elem, .. }) => {
-                let mut tokens = proc_macro2::TokenStream::new();
-                elem.to_tokens(&mut tokens);
-                println!("TypeRef :: {:?}", tokens.to_string());
-                tokens.to_string()
+
+                "tokens".to_string()
             }
             _ => panic!(
                 "Type `{:?}` of field `{}` not supported",
@@ -108,7 +140,7 @@ fn find_field_types(fields: &Vec<syn::Field>) -> HashMap<String, String> {
             ),
         };
         // println!("Field name :: {}, field type: {}", field_ident, field_type);
-        types.insert(field_ident, field_type);
+         types.insert(field_ident, field_type);
     }
     types
 }
