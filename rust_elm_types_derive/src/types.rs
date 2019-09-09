@@ -5,10 +5,10 @@ enum ElmTypes {
     Float,
     Char,
     List,
-    Map,
+    Dict,
     Maybe,
     Result,
-    Unknown,
+    Unknown(String),
 }
 
 impl ElmTypes {
@@ -20,10 +20,10 @@ impl ElmTypes {
             ElmTypes::Float => "Float",
             ElmTypes::Char => "Char",
             ElmTypes::List => "List",
-            ElmTypes::Map => "Map",
+            ElmTypes::Dict => "Dict",
             ElmTypes::Maybe => "Maybe",
             ElmTypes::Result => "Result",
-            ElmTypes::Unknown => "Unknown",
+            ElmTypes::Unknown(ref value) => value,
         })
         .to_string()
     }
@@ -49,7 +49,7 @@ enum RustType {
     HashMap,
     Option,
     Result,
-    Unknown,
+    Unknown(String),
 }
 
 impl RustType {
@@ -74,7 +74,7 @@ impl RustType {
             RustType::HashMap => "HashMap",
             RustType::Option => "Option",
             RustType::Result => "Result",
-            RustType::Unknown => "Unknown",
+            RustType::Unknown(ref value) => value,
         })
         .to_string()
     }
@@ -102,7 +102,7 @@ impl<'a> From<&'a str> for RustType {
             "HashMap" => RustType::HashMap,
             "Option" => RustType::Option,
             "Result" => RustType::Result,
-            _ => RustType::Unknown,
+            _ => RustType::Unknown(input.to_string()),
         }
     }
 }
@@ -126,10 +126,10 @@ impl<'a> From<&'a RustType> for ElmTypes {
             RustType::F64 => ElmTypes::Float,
             RustType::String => ElmTypes::String,
             RustType::Vec => ElmTypes::List,
-            RustType::HashMap => ElmTypes::Map,
+            RustType::HashMap => ElmTypes::Dict,
             RustType::Option => ElmTypes::Maybe,
             RustType::Result => ElmTypes::Result,
-            RustType::Unknown => ElmTypes::Unknown,
+            RustType::Unknown(value) => ElmTypes::Unknown(value.to_string()),
         }
     }
 }
