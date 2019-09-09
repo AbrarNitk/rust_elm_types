@@ -10,3 +10,6 @@ members = ["rust_elm_types_derive"]
 
 [dependencies]
 rust_elm_types_derive = {path = "./rust_elm_types_derive/"}
+serde = "~1.0.27"
+serde_derive = "~1.0.27"
+serde_json = "~1.0.9"

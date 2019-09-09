@@ -5,12 +5,8 @@ extern crate syn;
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro2;
-use quote::ToTokens;
 use std::collections::HashMap;
-use std::env::args;
-use std::process::id;
-use syn::{DeriveInput, PathSegment};
+use syn::DeriveInput;
 
 mod types;
 
@@ -27,19 +23,56 @@ pub fn generate_elm_types(input: TokenStream) -> TokenStream {
         }
         _ => panic!("#[derive(Elm)] can only be used with structs"),
     };
-    let types = find_field_types(&fields);
+    let field_types = find_field_types(&fields);
     for field in &fields {
-        field_validator_for_field(field, &types);
+        let field_ident = field.ident.as_ref().unwrap().to_string();
+        let field_type = field_types.get(&field_ident).unwrap();
+        let name = find_name_for_field(field);
+        println!("name:: {}, type: {:?}", name, field_type);
     }
     quote!().into()
 }
 
-fn field_validator_for_field(
-    field: &syn::Field,
-    field_types: &HashMap<String, Vec<types::RustType>>,
-) {
-    let field_ident = field.ident.as_ref().unwrap().to_string();
+fn lit_to_string(lit: &syn::Lit) -> Option<String> {
+    match *lit {
+        syn::Lit::Str(ref s) => Some(s.value()),
+        _ => None,
+    }
+}
 
+fn find_field_name(meta_items: &Vec<&syn::NestedMeta>) -> Option<String> {
+    let mut field_name = None;
+    for meta_item in meta_items.iter() {
+        match meta_item {
+            syn::NestedMeta::Meta(ref item) => match item {
+                syn::Meta::Word(_ident) => {
+                    continue;
+                }
+                syn::Meta::NameValue(syn::MetaNameValue {
+                    ref ident, ref lit, ..
+                }) => {
+                    if ident == "rename" {
+                        field_name = Some(lit_to_string(lit).unwrap());
+                    }
+                }
+                syn::Meta::List(syn::MetaList { ref nested, .. }) => {
+                    return find_field_name(&nested.iter().collect());
+                }
+            },
+            _ => unimplemented!(),
+        };
+
+        if field_name.is_some() {
+            return field_name;
+        }
+    }
+
+    field_name
+}
+
+fn find_name_for_field(field: &syn::Field) -> String {
+    let field_ident = field.ident.as_ref().unwrap().to_string();
+    let mut rename = None;
     let error = |msg: &str| -> ! {
         panic!(
             "Invalid attribute #[Elm] on field `{}`: {}",
@@ -47,23 +80,36 @@ fn field_validator_for_field(
         );
     };
 
-    let field_type = field_types.get(&field_ident).unwrap();
     for attr in field.attrs.iter() {
+        // If a field doesn't have elm as attr then continue
+        if attr.path != parse_quote!(elm) {
+            continue;
+        }
+
         match attr.interpret_meta() {
+            // case #[elm(rename="name_one")]
             Some(syn::Meta::List(syn::MetaList { ref nested, .. })) => {
-                for meta_item in nested.iter() {
-                    println!("Meta Item :: {:?}  ", meta_item);
+                if attr.path == parse_quote!(elm) {
+                    rename = find_field_name(&nested.iter().collect());
+                    // println!("Rename :: {:?}", rename);
                 }
             }
-            Some(syn::Meta::Word(word)) => {
-                println!("Meta Word :: {:?}", word.to_string());
-            }
+            // case #[elm]
+            Some(syn::Meta::Word(_)) => {}
+
+            // case #[elm = "name_v1"]
             Some(syn::Meta::NameValue(syn::MetaNameValue { .. })) => {}
             _ => unreachable!(
                 "Got something else other than a list of attributes while checking field `{}`",
                 field_ident
             ),
         };
+    }
+
+    if let Some(name) = rename {
+        name
+    } else {
+        field_ident
     }
 }
 
@@ -140,7 +186,7 @@ fn type_args(path_args: &syn::PathArguments, type_arg: &mut Vec<types::RustType>
                 }
             }
         }
-        syn::PathArguments::Parenthesized(ref paren) => {}
+        syn::PathArguments::Parenthesized(ref _paren) => {}
         syn::PathArguments::None => {}
     };
 }
