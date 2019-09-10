@@ -20,7 +20,7 @@ struct Foo {
     name: String,
 }
 ```
-When ever run cargo build, check or test first time it will generated corresponding Elm code.
+After change into models, When ever run cargo build, check or test first time it will generated corresponding Elm code.
 
 ```elm
 module Foo exposing (..)
@@ -160,3 +160,11 @@ type alias User =
 	}
 
 ```
+
+# RoadMap
+*[x] Generate Elm types alias from Rust struct.
+*[ ] Make recursively type checks.
+*[ ] Auto Import of Elm modules, if it exists inside same dir.
+*[ ] Generate Elm types from Rust types.
+*[ ] Generate Elm encoders from Rust types.
+*[ ] Generate Elm decoders from Rust types.
