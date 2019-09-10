@@ -12,10 +12,10 @@ repository = "https://github.com/AbrarNitk/rust_elm_types"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members = ["realm_mate"]
+members = ["elm_rusty"]
 
 [dependencies]
-realm_mate = {path = "./realm_mate/"}
+elm_rusty = {path = "./elm_rusty/"}
 serde = "~1.0.27"
 serde_derive = "~1.0.27"
 serde_json = "~1.0.9"

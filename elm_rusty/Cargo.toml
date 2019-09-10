@@ -1,5 +1,5 @@
 [package]
-name = "realm_mate"
+name = "elm_rusty"
 version = "0.1.0"
 authors = ["AbrarNitk <abrar.nitk@gmail.com>"]
 edition = "2018"

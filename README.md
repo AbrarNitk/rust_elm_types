@@ -9,7 +9,7 @@
 - #### struct with option path(path is mandatory option)
 ```rust
 #[macro_use]
-extern crate realm_mate;
+extern crate elm_rusty;
 
 // Declare struct with Elm derive
 // Here path is mandatory in elm opts or export in env variable as ELM_TYPES
@@ -35,7 +35,7 @@ type alias Foo =
 - #### struct with option path and rename
 ```rust
  #[macro_use]
-extern crate realm_mate;
+extern crate elm_rusty;
 
 mod temp {
     pub struct User {}
@@ -67,7 +67,7 @@ Here, I did not handle recursively custom type derive Elm, so it won't create co
 - #### struct with option path, elm type rename and field rename option
 ```rust
 #[macro_use]
-extern crate realm_mate;
+extern crate elm_rusty;
 
 mod temp {
     pub struct User {}
@@ -100,7 +100,7 @@ type alias ElmUser =
 ```rust
 
 #[macro_use]
-extern crate realm_mate;
+extern crate elm_rusty;
 
 mod temp {
     pub struct User {}
@@ -134,7 +134,7 @@ type alias ElmUser =
 ```rust
 
 #[macro_use]
-extern crate realm_mate;
+extern crate elm_rusty;
 
 mod temp {
     pub struct User {}
