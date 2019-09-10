@@ -12,7 +12,7 @@
 extern crate realm_mate;
 
 // Declare struct with Elm derive
-// Here path is mandatory in elm opts
+// Here path is mandatory in elm opts or export in env variable as ELM_TYPES
 #[derive(Elm)]
 #[elm(opts(path = "/Users/abrarkhan/Documents/github/rust_elm_types"))]
 struct Foo {
@@ -121,6 +121,39 @@ struct User<'a> {
 module ElmUser exposing (..)
 
 type alias ElmUser =
+	{ id: List(Dict String(List User))
+	, foo: Maybe(List Int)
+	, vector: List Int
+	}
+
+```
+
+
+- ###Example 5
+- #### without elm options and export path as ELM_TYPES="/Users/abrarkhan/Documents/github/rust_elm_types"
+```rust
+
+#[macro_use]
+extern crate realm_mate;
+
+mod temp {
+    pub struct User {}
+}
+
+#[derive(Elm)]
+struct User<'a> {
+    #[elm(rename = "foo")]
+    name: Option<Vec<i32>>,
+    id: &'a Vec<std::collections::HashMap<String, Vec<temp::User>>>,
+    vector: Vec<i32>,
+}
+```
+
+```elm
+
+module User exposing (..)
+
+type alias User =
 	{ id: List(Dict String(List User))
 	, foo: Maybe(List Int)
 	, vector: List Int
