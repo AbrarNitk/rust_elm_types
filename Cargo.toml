@@ -3,6 +3,12 @@ name = "rust_elm_types"
 version = "0.1.0"
 authors = ["AbrarNitk <abrar.nitk@gmail.com>"]
 edition = "2018"
+description = "Auto generate Rust models to Elm models"
+license = "MIT"
+include = ["src/**/*", "Cargo.toml"]
+readme = "README.md"
+keywords = ["rust", "elm_types", "rust_to_elm_types"]
+repository = "https://github.com/AbrarNitk/rust_elm_types"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]

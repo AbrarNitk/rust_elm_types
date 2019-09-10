@@ -163,8 +163,13 @@ type alias User =
 
 # RoadMap
 *[x] Generate Elm types alias from Rust struct.
+
 *[ ] Make recursively type checks.
+
 *[ ] Auto Import of Elm modules, if it exists inside same dir.
+
 *[ ] Generate Elm types from Rust types.
+
 *[ ] Generate Elm encoders from Rust types.
+
 *[ ] Generate Elm decoders from Rust types.
