@@ -7,6 +7,10 @@ extern crate serde_derive;
 mod temp;
 
 #[derive(Elm, Serialize)]
+#[elm(opts(
+    rename = "ElmUser",
+    path = "/Users/abrarkhan/Documents/github/rust_elm_types"
+))]
 struct User<'a> {
     #[elm(rename = "elm_rename")]
     name: Option<Vec<i32>>,

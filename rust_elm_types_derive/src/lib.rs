@@ -2,19 +2,43 @@
 extern crate quote;
 #[macro_use]
 extern crate syn;
+extern crate darling;
 extern crate proc_macro;
 
 use crate::types::ElmTypes;
+use darling::{FromDeriveInput, FromMeta};
 use proc_macro::TokenStream;
 use std::collections::HashMap;
 use syn::DeriveInput;
-
 mod elm_files;
 mod types;
 
+#[derive(Default, FromMeta, Debug)]
+#[darling(default)]
+struct PathArg {
+    rename: Option<String>,
+    path: String,
+}
+
+#[derive(FromDeriveInput, Debug)]
+#[darling(attributes(elm), forward_attrs(allow, doc, cfg))]
+struct PathArgs {
+    ident: syn::Ident,
+    attrs: Vec<syn::Attribute>,
+    opts: PathArg,
+}
+
 #[proc_macro_derive(Elm, attributes(elm))]
 pub fn generate_elm_types(input: TokenStream) -> TokenStream {
+    //    let input_clone = input.clone();
     let ast = parse_macro_input!(input as DeriveInput);
+
+    let attrs = match PathArgs::from_derive_input(&ast) {
+        Ok(val) => val,
+        Err(err) => {
+            return err.write_errors().into();
+        }
+    };
 
     let fields = match &ast.data {
         syn::Data::Struct(syn::DataStruct { ref fields, .. }) => {
@@ -42,12 +66,13 @@ pub fn generate_elm_types(input: TokenStream) -> TokenStream {
         // println!("name:: {}, type: {:?}", name, field_type);
     }
 
-    elm_files::generate_elm(
-        "/Users/abrarkhan/Documents/github/rust_elm_types",
-        ast.ident.to_string().as_str(),
-        &mut elm_fields,
-    )
-    .unwrap();
+    let ident_name = if let Some(name) = &attrs.opts.rename {
+        name.to_string()
+    } else {
+        ast.ident.to_string()
+    };
+
+    elm_files::generate_elm(&attrs.opts.path, &ident_name, &mut elm_fields).unwrap();
 
     quote!().into()
 }
@@ -185,17 +210,18 @@ fn type_args(path_args: &syn::PathArguments, type_arg: &mut Vec<types::RustType>
         }) => {
             for x in args.iter() {
                 match x {
-                    syn::GenericArgument::Type(syn::Type::Array(syn::TypeArray {
-                        ref elem,
-                        ..
-                    })) => {
-                        println!("TypeArray {:?}", elem);
+                    syn::GenericArgument::Type(syn::Type::Array(syn::TypeArray { .. })) => {
+                        unimplemented!("syn::Type::Array unimplemented")
                     }
-                    syn::GenericArgument::Type(syn::Type::BareFn(syn::TypeBareFn { .. })) => {}
-                    syn::GenericArgument::Type(syn::Type::Group(syn::TypeGroup { .. })) => {}
+                    syn::GenericArgument::Type(syn::Type::BareFn(syn::TypeBareFn { .. })) => {
+                        unimplemented!("syn::Type::BareFn unimplemented")
+                    }
+                    syn::GenericArgument::Type(syn::Type::Group(syn::TypeGroup { .. })) => {
+                        unimplemented!("syn::Type::Group unimplemented")
+                    }
                     syn::GenericArgument::Type(syn::Type::ImplTrait(syn::TypeImplTrait {
                         ..
-                    })) => {}
+                    })) => unimplemented!("syn::Type::ImplTrait unimplemented"),
                     syn::GenericArgument::Type(syn::Type::Path(syn::TypePath {
                         ref path, ..
                     })) => {
@@ -208,7 +234,11 @@ fn type_args(path_args: &syn::PathArguments, type_arg: &mut Vec<types::RustType>
                 }
             }
         }
-        syn::PathArguments::Parenthesized(ref _paren) => {}
-        syn::PathArguments::None => {}
+        syn::PathArguments::Parenthesized(ref _paren) => {
+            unimplemented!("syn::PathArguments::Parenthesized unimplemented")
+        }
+        syn::PathArguments::None => {
+            return;
+        }
     };
 }
