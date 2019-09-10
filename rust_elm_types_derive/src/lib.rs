@@ -4,10 +4,12 @@ extern crate quote;
 extern crate syn;
 extern crate proc_macro;
 
+use crate::types::ElmTypes;
 use proc_macro::TokenStream;
 use std::collections::HashMap;
 use syn::DeriveInput;
 
+mod elm_files;
 mod types;
 
 #[proc_macro_derive(Elm, attributes(elm))]
@@ -24,12 +26,29 @@ pub fn generate_elm_types(input: TokenStream) -> TokenStream {
         _ => panic!("#[derive(Elm)] can only be used with structs"),
     };
     let field_types = find_field_types(&fields);
+    let mut elm_fields = HashMap::new();
+
     for field in &fields {
         let field_ident = field.ident.as_ref().unwrap().to_string();
-        let field_type = field_types.get(&field_ident).unwrap();
+        let field_type = field_types
+            .get(&field_ident)
+            .unwrap()
+            .iter()
+            .map(|x| x.into())
+            .collect::<Vec<ElmTypes>>();
+
         let name = find_name_for_field(field);
-        println!("name:: {}, type: {:?}", name, field_type);
+        elm_fields.insert(name, field_type);
+        // println!("name:: {}, type: {:?}", name, field_type);
     }
+
+    elm_files::generate_elm(
+        "/Users/abrarkhan/Documents/github/rust_elm_types",
+        ast.ident.to_string().as_str(),
+        &mut elm_fields,
+    )
+    .unwrap();
+
     quote!().into()
 }
 
@@ -40,7 +59,7 @@ fn lit_to_string(lit: &syn::Lit) -> Option<String> {
     }
 }
 
-fn find_field_name(meta_items: &Vec<&syn::NestedMeta>) -> Option<String> {
+fn find_field_name(field_ident: &str, meta_items: &Vec<&syn::NestedMeta>) -> Option<String> {
     let mut field_name = None;
     for meta_item in meta_items.iter() {
         match meta_item {
@@ -56,17 +75,16 @@ fn find_field_name(meta_items: &Vec<&syn::NestedMeta>) -> Option<String> {
                     }
                 }
                 syn::Meta::List(syn::MetaList { ref nested, .. }) => {
-                    return find_field_name(&nested.iter().collect());
+                    return find_field_name(field_ident, &nested.iter().collect());
                 }
             },
-            _ => unimplemented!(),
+            _ => unimplemented!("This field is unimplemented: {}", field_ident),
         };
 
         if field_name.is_some() {
             return field_name;
         }
     }
-
     field_name
 }
 
@@ -90,15 +108,19 @@ fn find_name_for_field(field: &syn::Field) -> String {
             // case #[elm(rename="name_one")]
             Some(syn::Meta::List(syn::MetaList { ref nested, .. })) => {
                 if attr.path == parse_quote!(elm) {
-                    rename = find_field_name(&nested.iter().collect());
+                    rename = find_field_name(&field_ident, &nested.iter().collect());
                     // println!("Rename :: {:?}", rename);
                 }
             }
             // case #[elm]
-            Some(syn::Meta::Word(_)) => {}
+            Some(syn::Meta::Word(_)) => {
+                error("case `#[elm]` not implemented");
+            }
 
             // case #[elm = "name_v1"]
-            Some(syn::Meta::NameValue(syn::MetaNameValue { .. })) => {}
+            Some(syn::Meta::NameValue(syn::MetaNameValue { .. })) => {
+                error("case `#[elm = \"foo\"]` not implemented");
+            }
             _ => unreachable!(
                 "Got something else other than a list of attributes while checking field `{}`",
                 field_ident

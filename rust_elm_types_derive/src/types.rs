@@ -1,5 +1,6 @@
 use proc_macro2::Ident;
 
+#[derive(Debug)]
 pub enum ElmTypes {
     Bool,
     String,
@@ -14,7 +15,7 @@ pub enum ElmTypes {
 }
 
 impl ElmTypes {
-    fn elm_type(&self) -> String {
+    pub fn elm_type(&self) -> String {
         (match self {
             ElmTypes::Bool => "bool",
             ElmTypes::String => "String",
@@ -54,34 +55,34 @@ pub enum RustType {
     Result,
     Unknown(String),
 }
-
-impl RustType {
-    fn rust_type(&self) -> String {
-        (match self {
-            RustType::Char => "char",
-            RustType::Bool => "bool",
-            RustType::I8 => "i8",
-            RustType::I16 => "i16",
-            RustType::I32 => "i32",
-            RustType::I64 => "i64",
-            RustType::ISize => "isize",
-            RustType::U8 => "u8",
-            RustType::U16 => "u16",
-            RustType::U32 => "u32",
-            RustType::U64 => "u64",
-            RustType::USize => "usize",
-            RustType::F32 => "f32",
-            RustType::F64 => "f64",
-            RustType::String => "String",
-            RustType::Vec => "Vec",
-            RustType::HashMap => "HashMap",
-            RustType::Option => "Option",
-            RustType::Result => "Result",
-            RustType::Unknown(ref value) => value,
-        })
-        .to_string()
-    }
-}
+//
+//impl RustType {
+//    fn rust_type(&self) -> String {
+//        (match self {
+//            RustType::Char => "char",
+//            RustType::Bool => "bool",
+//            RustType::I8 => "i8",
+//            RustType::I16 => "i16",
+//            RustType::I32 => "i32",
+//            RustType::I64 => "i64",
+//            RustType::ISize => "isize",
+//            RustType::U8 => "u8",
+//            RustType::U16 => "u16",
+//            RustType::U32 => "u32",
+//            RustType::U64 => "u64",
+//            RustType::USize => "usize",
+//            RustType::F32 => "f32",
+//            RustType::F64 => "f64",
+//            RustType::String => "String",
+//            RustType::Vec => "Vec",
+//            RustType::HashMap => "HashMap",
+//            RustType::Option => "Option",
+//            RustType::Result => "Result",
+//            RustType::Unknown(ref value) => value,
+//        })
+//        .to_string()
+//    }
+//}
 
 fn string_to_rust(input: &str) -> RustType {
     match input {
