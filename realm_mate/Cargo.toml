@@ -1,5 +1,5 @@
 [package]
-name = "rust_elm_types_derive"
+name = "realm_mate"
 version = "0.1.0"
 authors = ["AbrarNitk <abrar.nitk@gmail.com>"]
 edition = "2018"

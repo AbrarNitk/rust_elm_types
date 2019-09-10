@@ -33,10 +33,23 @@ pub fn generate_elm_types(input: TokenStream) -> TokenStream {
     //    let input_clone = input.clone();
     let ast = parse_macro_input!(input as DeriveInput);
 
+    let elm_path = std::env::var("ELM_TYPES").ok();
+
     let attrs = match PathArgs::from_derive_input(&ast) {
-        Ok(val) => val,
+        Ok(val) => val.opts,
         Err(err) => {
-            return err.write_errors().into();
+            if elm_path.is_some() {
+                PathArg {
+                    rename: None,
+                    path: elm_path.unwrap(),
+                }
+            } else {
+                println!(
+                    "export ELM_TYPES dir path or pass elm dir path struct opts: {}",
+                    &ast.ident
+                );
+                return err.write_errors().into();
+            }
         }
     };
 
@@ -66,13 +79,13 @@ pub fn generate_elm_types(input: TokenStream) -> TokenStream {
         // println!("name:: {}, type: {:?}", name, field_type);
     }
 
-    let ident_name = if let Some(name) = &attrs.opts.rename {
+    let ident_name = if let Some(name) = &attrs.rename {
         name.to_string()
     } else {
         ast.ident.to_string()
     };
 
-    elm_files::generate_elm(&attrs.opts.path, &ident_name, &mut elm_fields).unwrap();
+    elm_files::generate_elm(&attrs.path, &ident_name, &mut elm_fields).unwrap();
 
     quote!().into()
 }

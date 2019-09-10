@@ -1,20 +1,29 @@
 #[macro_use]
-extern crate rust_elm_types_derive;
+extern crate realm_mate;
 
 #[macro_use]
 extern crate serde_derive;
 
-mod temp;
+mod temp {
+    pub struct User {}
+}
 
-#[derive(Elm, Serialize)]
+#[derive(Elm)]
+#[elm(opts(path = "/Users/abrarkhan/Documents/github/rust_elm_types"))]
+struct Foo {
+    id: i32,
+    name: String,
+}
+
+#[derive(Elm)]
 #[elm(opts(
     rename = "ElmUser",
     path = "/Users/abrarkhan/Documents/github/rust_elm_types"
 ))]
 struct User<'a> {
-    #[elm(rename = "elm_rename")]
+    #[elm(rename = "foo")]
     name: Option<Vec<i32>>,
-    id: &'a Vec<std::collections::HashMap<String, Vec<String>>>,
+    id: &'a Vec<std::collections::HashMap<String, Vec<temp::User>>>,
     vector: Vec<i32>,
 }
 
